@@ -19,6 +19,7 @@ from multiprocessing import Pool
 import cPickle as pickle
 from sklearn.feature_extraction.text import TfidfTransformer, CountVectorizer
 import argparse
+from group2vec.utils import load_data, normalize
 
 
 def parse_args():
@@ -34,11 +35,9 @@ def parse_args():
     parser.add_argument('--neg_cnt_trans', type=int, default=5, help='Number of negtive instances for generating the transition matrices with DeepWalk.')
     parser.add_argument('--dimension', type=int, default=128, help='Number of dimensions for group embedding.')
     parser.add_argument('--dimension_trans', type=int, default=128, help='Number of dimensions for node embedding used to generating the transition matrices.')
-
     parser.add_argument('--learning_rate', type=float, default=0.1, help='Learning rate to learn group embedding.')
-
     parser.add_argument('--weighted', dest='weighted', action='store_true',
-                        help='Boolean specifying (un)weighted. Default is unweighted.')
+                        help='Boolean specifying (un)weighted for generating the transition matrices with DeepWalk. Default is weighted.')
     parser.add_argument('--unweighted', dest='unweighted', action='store_false')
     parser.set_defaults(weighted=True)
     parser.add_argument('--directed', dest='directed', action='store_true',
@@ -47,19 +46,38 @@ def parse_args():
     parser.set_defaults(directed=False)
     return parser.parse_args()
 
+def generate_A():
+    pass
+
+def generate_B():
+    pass
+
+def generate_group_corpus():
+    pass
+
+def compute_embs(corpus):
+    pass
+
+def output_embs():
+    pass
 
 if __name__ == '__main__':
+    args = parse_args()
+
     # loading the data
-    f = open('G.dat', 'r')
-    G, groups, labels, _ = pickle.load(f)
-    f.close()
+    G = nx.read_edgelist(args.edge_list, nodetype = int)
+    groups = load_data(args.group_members)
     num_nodes = G.number_of_nodes()
     num_groups = len(groups)
 
     # generating the transition matrices
-    neighbors
-    weights
+    neighbors_node_node, weights_node_node = generate_A()
+    neighbors_node_group, weights_node_group, neighbors_group_node, weights_group_node = generate_B()
 
     # generating group corpus
+    corpus = generate_group_corpus()
 
     # embedding
+    embs = compute_embs(corpus)
+
+    output_embs()
