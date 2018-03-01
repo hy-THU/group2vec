@@ -148,12 +148,11 @@ def generate_group_corpus():
     pool.close()
     pool.join()
     random.shuffle(walks)
+    walks = [map(str, walk) for walk in walks]
     return walks
 
+
 def walk(start_node):
-    '''
-    Simulate a random walk.
-    '''
     walk = [start_node]
     while len(walk) < args.walk_length:
         cur = walk[-1]
