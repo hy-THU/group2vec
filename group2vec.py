@@ -51,10 +51,6 @@ def parse_args():
                         help='Boolean specifying (un)weighted for generating the transition matrices with DeepWalk. Default is weighted.')
     parser.add_argument('--unweighted', dest='unweighted', action='store_false')
     parser.set_defaults(weighted=True)
-    parser.add_argument('--directed', dest='directed', action='store_false',
-                        help='Graph is (un)directed. Default is undirected.')
-    parser.add_argument('--undirected', dest='undirected', action='store_true')
-    parser.set_defaults(directed=False)
     parser.add_argument('--deepwalk', dest='deepwalk', action='store_true', help='Generate transition matrix A with DeepWalk. Default is true.')
     parser.set_defaults(deepwalk=True)
     return parser.parse_args()
