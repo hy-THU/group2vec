@@ -26,7 +26,7 @@ import argparse
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run CPNE.")
-    parser.add_argument('--edge_list', default='edges_list', help='Input edge list path.')
+    parser.add_argument('--adj_list', default='adj_list', help='Input adjacency list path.')
     parser.add_argument('--group_members', default='group_members', help='Input group members path.')
     parser.add_argument('--group_embs', default='group_embs', help='Output group embeddings path.')
     parser.add_argument('--num_threads', type=int, default=10, help='Number of threads.')

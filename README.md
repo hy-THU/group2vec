@@ -2,15 +2,15 @@
 Group2vec and group2vec++ by Yu Han (yuhanthu@126.com)
 
 ## Input files
-- edge_list:\
-It is the network topology represented by an edge list, such as
+- adj_list:\
+It is the network topology represented by an adjacency list, such as
 ```
-0 1
+0 1 2
 1 2
-1 3
+2 3
 ...
 ```
-where each line contains two node indexes separated by a space.
+where the nodes are separated by spaces.
 - group_members:\
 This file denotes the membership of the nodes for each group, such as
 ```
