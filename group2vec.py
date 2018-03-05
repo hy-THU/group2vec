@@ -179,7 +179,7 @@ if __name__ == '__main__':
     args = parse_args()
 
     # loading the data
-    G = nx.read_edgelist(args.edge_list, nodetype=int)
+    G = nx.read_adjlist(args.adj_list, nodetype=int)
     groups = load_data(args.group_members)
     nodes = G.nodes()
     num_nodes = G.number_of_nodes()
