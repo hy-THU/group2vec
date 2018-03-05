@@ -1,26 +1,15 @@
 from __future__ import division
-import os
 from collections import defaultdict, Counter
 import pynauty
 import numpy as np
-import itertools
 import networkx as nx
 import random
 from tqdm import tqdm
 from multiprocessing import Pool
 from gensim.models import Word2Vec
-from gensim.models.keyedvectors import KeyedVectors
-from sklearn.utils import shuffle as skshuffle
-from sklearn.linear_model import LogisticRegression
-from sklearn import svm
-from sklearn.cross_validation import train_test_split
-from sklearn.metrics import f1_score, precision_score, recall_score, accuracy_score
-from sklearn.model_selection import cross_val_score
-import re
 import cPickle as pickle
-import math
 from sklearn.feature_extraction.text import TfidfTransformer, CountVectorizer
-from group2vec.utils import load_data, normalize
+from utils import load_data, normalize
 import argparse
 
 
@@ -47,6 +36,7 @@ def parse_args():
     parser.add_argument('--window_size_trans', type=int, default=3,
                         help='Window size for node embedding used to generating the transition matrices with DeepWalk.')
     parser.add_argument('--K', type=int, default=100, help='Top K nodes to save in A for each node.')
+    parser.add_argument('--motif_size', type=int, default=8, help='Motif size.')
     parser.add_argument('--threshold', type=float, default=0.6, help='Threshold lambda to generating group corpus.')
     parser.add_argument('--learning_rate', type=float, default=0.1, help='Learning rate to learn group embedding.')
     parser.add_argument('--weighted', dest='weighted', action='store_true',
@@ -74,7 +64,7 @@ def generate_motif(motif_size):
 def generate_transition_matrices():
     corpus, groups = sample_motifs()
     neighbors_motif_motif, weights_motif_motif = generate_A(corpus)
-    neighbors_motif_group, weights_motif_group, neighbors_group_motif, weights_group_motif = generate_B()
+    neighbors_motif_group, weights_motif_group, neighbors_group_motif, weights_group_motif = generate_B(groups)
     return neighbors_motif_motif, weights_motif_motif, neighbors_motif_group, weights_motif_group, neighbors_group_motif, weights_group_motif
 
 
@@ -88,7 +78,7 @@ def sample_motifs():
         groups.append({'am': am, 'gidx': gidx})
         gidx += 1
     pool = Pool(args.num_threads)
-    for _ in tqdm(range(args.num_walks_motif)):
+    for _ in tqdm(range(args.num_walks_trans)):
         corpus_augmented += pool.map(motif_sampler, groups)
     pool.close()
     pool.join()
@@ -106,7 +96,7 @@ def sample_motifs():
     return corpus, groups
 
 
-def motif_sampler():
+def motif_sampler(group):
     am = group['am']
     gidx = group['gidx']
     seq = []
