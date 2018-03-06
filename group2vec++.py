@@ -9,8 +9,9 @@ from multiprocessing import Pool
 from gensim.models import Word2Vec
 import cPickle as pickle
 from sklearn.feature_extraction.text import TfidfTransformer, CountVectorizer
-from utils import load_network, load_groups, normalize
 import argparse
+from sklearn import preprocessing
+from utils import load_network, load_groups, normalize
 
 
 def parse_args():
@@ -190,7 +191,7 @@ def compute_embs(corpus):
     model = Word2Vec(corpus, size=args.dimension, window=args.window_size, min_count=0, workers=args.num_threads)
     group_embs = []
     for gid in range(num_groups):
-        group_embs.append(model[str(num_nodes + gid)])
+        group_embs.append(model[str(num_motifs + gid)])
     group_embs = preprocessing.normalize(group_embs, norm='l2')
     return np.array(group_embs)
 
