@@ -20,7 +20,7 @@ This is the network input file. You should specify the format.
 2 3
 ...
 ``````
-```--network_format adj_list``` for a numpy adjacency matrix.
+```--network_format adj_matrix``` for a numpy adjacency matrix.
 
 - groups:\
 This file denotes the membership of the nodes for each group, such as
