@@ -9,14 +9,15 @@ from multiprocessing import Pool
 from gensim.models import Word2Vec
 import cPickle as pickle
 from sklearn.feature_extraction.text import TfidfTransformer, CountVectorizer
-from utils import load_data, normalize
+from utils import load_network, load_groups, normalize
 import argparse
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run CPNE.")
-    parser.add_argument('--adj_list', default='adj_list', help='Input adjacency list path.')
-    parser.add_argument('--group_members', default='group_members', help='Input group members path.')
+    parser.add_argument('--network_format', default='adj_list', help='Input adjacency list path.')
+    parser.add_argument('--network', default='adj.txt', help='Input adjacency list path.')
+    parser.add_argument('--groups', default='group.txt', help='Input group members path.')
     parser.add_argument('--group_embs', default='group_embs', help='Output group embeddings path.')
     parser.add_argument('--num_threads', type=int, default=10, help='Number of threads.')
     parser.add_argument('--num_walks', type=int, default=1000, help='Number of walks for generating the group corpus.')
@@ -163,20 +164,20 @@ def generate_group_corpus():
     nodes = neighbors_motif_group.keys() + neighbors_group_motif.keys()
     pool = Pool(args.num_threads)
     for _ in tqdm(range(args.num_walks)):
-        walks += pool.map(walk, nodes)
+        walks += pool.map(walker, nodes)
     pool.close()
     pool.join()
     random.shuffle(walks)
     walks = [map(str, walk) for walk in walks]
     return walks
 
-def walk(start_node):
+def walker(start_node):
     walk = [start_node]
     while len(walk) < args.walk_length:
         cur = walk[-1]
         if cur >= num_motifs and len(neighbors_group_motif[cur]) > 0:
             walk.append(np.random.choice(neighbors_group_motif[cur], p = weights_group_motif[cur]))
-        elif cur < num_motifs and random.random() > args.threshold:
+        elif cur < num_motifs and random.random() > args.threshold and len(neighbors_motif_motif[cur]) > 0:
             walk.append(np.random.choice(neighbors_motif_motif[cur], p = weights_motif_motif[cur]))
         elif cur < num_motifs and len(neighbors_motif_group[cur]) > 0:
             walk.append(np.random.choice(neighbors_motif_group[cur], p = weights_motif_group[cur]))
@@ -187,10 +188,14 @@ def walk(start_node):
 
 def compute_embs(corpus):
     model = Word2Vec(corpus, size=args.dimension, window=args.window_size, min_count=0, workers=args.num_threads)
-    return model.wv
+    group_embs = []
+    for gid in range(num_groups):
+        group_embs.append(model[str(num_nodes + gid)])
+    group_embs = preprocessing.normalize(group_embs, norm='l2')
+    return np.array(group_embs)
 
 def output_embs():
-    embs.save(args.group_embs)
+    np.save(args.group_embs, embs)
 
 
 if __name__ == '__main__':
@@ -201,10 +206,8 @@ if __name__ == '__main__':
     num_motifs = len(cert2idx)
 
     # loading the data
-    G = nx.read_adjlist(args.adj_list, nodetype=int)
-    groups = load_data(args.group_members)
-    # nodes = G.nodes()
-    # num_nodes = G.number_of_nodes()
+    G = load_network(args.network_format, args.network)
+    groups = load_groups(args.groups)
     num_groups = len(groups)
 
     group_ams = []

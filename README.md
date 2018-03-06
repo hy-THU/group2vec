@@ -2,16 +2,27 @@
 Group2vec and group2vec++ by Yu Han (yuhanthu@126.com)
 
 ## Input files
-- adj_list:\
-It is the network topology represented by an adjacency list, such as
+- network:\
+This is the network input file. You should specify the format.
+
+```--network_format adj_list``` for an adjacency list, e.g.:
 ```
 0 1 2
 1 2
 2 3
 ...
 ```
-where the nodes are separated by spaces.
-- group_members:\
+```--network_format edge_list``` for an edge list, e.g.:
+```
+0 1
+0 2
+1 2
+2 3
+...
+``````
+```--network_format adj_list``` for a numpy adjacency matrix.
+
+- groups:\
 This file denotes the membership of the nodes for each group, such as
 ```
 0 1 2 3 4 5
@@ -22,7 +33,7 @@ where each line contains all the member nodes of a group. The line indexes corre
 
 ## Output files
 - group_embs:\
-This file stores the group embeddings learned by group2vec or group2vec++
+This file stores the group embeddings learned by group2vec or group2vec++. The results are in the form of a numpy array.
 
 ## Usage
 ```angular2html

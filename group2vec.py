@@ -1,5 +1,4 @@
 from __future__ import division
-import networkx as nx
 from gensim.models import Word2Vec
 import random
 import numpy as np
@@ -7,13 +6,16 @@ from tqdm import tqdm
 from multiprocessing import Pool
 from sklearn.feature_extraction.text import TfidfTransformer, CountVectorizer
 import argparse
-from utils import load_data, normalize
+from collections import defaultdict
+from sklearn import preprocessing
+from utils import load_network, load_groups, normalize
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run CPNE.")
-    parser.add_argument('--adj_list', default='adj_list', help='Input adjacency list path.')
-    parser.add_argument('--group_members', default='group_members', help='Input group members path.')
+    parser.add_argument('--network_format', default='adj_list', help='Input adjacency list path.')
+    parser.add_argument('--network', default='adj.txt', help='Input adjacency list path.')
+    parser.add_argument('--groups', default='group.txt', help='Input group members path.')
     parser.add_argument('--group_embs', default='group_embs', help='Output group embeddings path.')
     parser.add_argument('--num_threads', type=int, default=10, help='Number of threads.')
     parser.add_argument('--num_walks', type=int, default=1000, help='Number of walks for generating the group corpus.')
@@ -45,13 +47,16 @@ def parse_args():
 
 
 def generate_A_adjacency():
-    neighbors_node_node = {}
-    weights_node_node = {}
+    neighbors_node_node = defaultdict(list)
+    weights_node_node = defaultdict(list)
     for node in nodes:
         for a, b in G[node].iteritems():
             if node != a:
                 neighbors_node_node[node].append(a)
-                weights_node_node[node].append(b['weight'])
+                if b.has_key('weight'):
+                    weights_node_node[node].append(b['weight'])
+                else:
+                    weights_node_node[node].append(1)
         weights_node_node[node] = normalize(weights_node_node[node])
     return neighbors_node_node, weights_node_node
 
@@ -132,7 +137,7 @@ def generate_group_corpus():
     group_ids = neighbors_group_node.keys()
     pool = Pool(args.num_threads)
     for _ in tqdm(range(args.num_walks)):
-        walks += pool.map(walk, group_ids)
+        walks += pool.map(walker, group_ids)
     pool.close()
     pool.join()
     random.shuffle(walks)
@@ -140,35 +145,41 @@ def generate_group_corpus():
     return walks
 
 
-def walk(start_node):
+def walker(start_node):
     walk = [start_node]
     while len(walk) < args.walk_length:
         cur = walk[-1]
         if cur >= num_nodes:
             walk.append(np.random.choice(neighbors_group_node[cur], p = weights_group_node[cur]))
-        elif random.random() > args.threshold:
+        elif random.random() > args.threshold and len(neighbors_node_node[cur]) > 0:
             walk.append(np.random.choice(neighbors_node_node[cur], p = weights_node_node[cur]))
-        else:
+        elif len(neighbors_node_group[cur]) > 0:
             walk.append(np.random.choice(neighbors_node_group[cur], p = weights_node_group[cur]))
+        else:
+            break
     walk = np.asarray(walk)
     return walk[np.ix_(np.where(walk >= num_nodes)[0])]
 
 
 def compute_embs(corpus):
     model = Word2Vec(corpus, size=args.dimension, window=args.window_size, min_count=0, workers=args.num_threads)
-    return model.wv
+    group_embs = []
+    for gid in range(num_groups):
+        group_embs.append(model[str(num_nodes + gid)])
+    group_embs = preprocessing.normalize(group_embs, norm = 'l2')
+    return np.array(group_embs)
 
 
 def output_embs():
-    embs.save(args.group_embs)
+    np.save(args.group_embs, embs)
 
 
 if __name__ == '__main__':
     args = parse_args()
 
     # loading the data
-    G = nx.read_adjlist(args.adj_list, nodetype=int)
-    groups = load_data(args.group_members)
+    G = load_network(args.network_format, args.network)
+    groups = load_groups(args.groups)
     nodes = G.nodes()
     num_nodes = G.number_of_nodes()
     num_groups = len(groups)
