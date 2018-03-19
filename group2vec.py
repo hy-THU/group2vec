@@ -17,7 +17,7 @@ def parse_args():
     parser.add_argument('--network', default='adj.txt', help='Input adjacency list path.')
     parser.add_argument('--groups', default='group.txt', help='Input group members path.')
     parser.add_argument('--group_embs', default='group_embs', help='Output group embeddings path.')
-    parser.add_argument('--num_threads', type=int, default=10, help='Number of threads.')
+    parser.add_argument('--num_workers', type=int, default=10, help='Number of workers.')
     parser.add_argument('--num_walks', type=int, default=1000, help='Number of walks for generating the group corpus.')
     parser.add_argument('--num_walks_trans', type=int, default=100,
                         help='Number of walks for generating the transition matrices with DeepWalk.')
@@ -63,7 +63,7 @@ def generate_A_adjacency():
 
 def generate_A_deepwalk():
     corpus = []
-    pool = Pool(args.num_threads)
+    pool = Pool(args.num_workers)
     for _ in tqdm(range(args.num_walks_trans)):
         corpus += pool.map(nodes_walk, nodes)
     pool.close()
@@ -71,7 +71,7 @@ def generate_A_deepwalk():
     corpus = [map(str, seq) for seq in corpus]
     random.shuffle(corpus)
 
-    model = Word2Vec(corpus, size=args.dimension_trans, window=args.window_size_trans, min_count=0, workers=args.num_threads)
+    model = Word2Vec(corpus, size=args.dimension_trans, window=args.window_size_trans, min_count=0, workers=args.num_workers)
 
     for node in nodes:
         neighbors, weights = calculate_nodes_proximities(model, node)
@@ -135,7 +135,7 @@ def generate_group_corpus():
     walks = []
     # nodes = range(num_nodes + num_groups)
     group_ids = neighbors_group_node.keys()
-    pool = Pool(args.num_threads)
+    pool = Pool(args.num_workers)
     for _ in tqdm(range(args.num_walks)):
         walks += pool.map(walker, group_ids)
     pool.close()
@@ -162,7 +162,7 @@ def walker(start_node):
 
 
 def compute_embs(corpus):
-    model = Word2Vec(corpus, size=args.dimension, window=args.window_size, min_count=0, workers=args.num_threads)
+    model = Word2Vec(corpus, size=args.dimension, window=args.window_size, min_count=0, workers=args.num_workers)
     group_embs = []
     for gid in range(num_groups):
         group_embs.append(model[str(num_nodes + gid)])
