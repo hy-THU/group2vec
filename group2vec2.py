@@ -120,7 +120,6 @@ def generate_A(corpus):
     motif_counter = Counter()
     for seq in corpus:
         motif_counter.update(seq)
-    #print motif_counter
 
     model = Word2Vec(corpus, size=args.dimension_trans, window=args.window_size_trans, min_count=0, workers=args.num_workers)
 

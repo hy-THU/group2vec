@@ -1,5 +1,5 @@
 # group2vec
-Group2vec and group2vec++ by Yu Han (yuhanthu@126.com)
+Group2vec1 and group2vec2 by Yu Han (yuhanthu@126.com)
 
 ## Input files
 - network:\
@@ -33,9 +33,9 @@ where each line contains all the member nodes of a group. The line indexes corre
 
 ## Output files
 - group_embs:\
-This file stores the group embeddings learned by group2vec or group2vec++. The results are in the form of a numpy array.
+This file stores the group embeddings learned by group2vec1 or group2vec2. The results are in the form of a numpy array.
 
 ## Usage
 ```angular2html
-python group2vec.py/group2vec++.py [options]
+python group2vec1.py/group2vec2.py [options]
 ```
