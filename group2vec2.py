@@ -103,12 +103,22 @@ def motif_sampler(group):
     gidx = group['gidx']
     seq = []
     while len(seq) < args.walk_length_trans:
-        size = args.motif_size
-        nodes = np.random.permutation(range(len(am)))[:size]
+        #size = args.motif_size
+        #nodes = np.random.permutation(range(len(am)))[:size]
+        nodes = get_next_motif_nodes(am, list(nodes))
         motif_am = am[np.ix_(nodes, nodes)]
         motif_idx = cert2idx[get_motif(motif_am, size)]
         seq.append(str(motif_idx))
     return (gidx, seq)
+
+def get_next_motif_nodes(am, nodes):
+    new_node = random.choice(range(len(am)))
+    while new_node in nodes:
+        new_node = random.choice(range(len(am)))
+    node = random.choice(nodes)
+    nodes.remove(node)
+    nodes.append(new_node)
+    return nodes
 
 def get_motif(motif_am, size):
     adj_mat = {idx: [i for i in list(np.where(edge)[0]) if i != idx] for idx, edge in enumerate(motif_am)}
