@@ -105,6 +105,7 @@ def motif_sampler(group):
     while len(seq) < args.walk_length_trans:
         #size = args.motif_size
         #nodes = np.random.permutation(range(len(am)))[:size]
+        nodes = range(len(am))
         nodes = get_next_motif_nodes(am, list(nodes))
         motif_am = am[np.ix_(nodes, nodes)]
         motif_idx = cert2idx[get_motif(motif_am, size)]
