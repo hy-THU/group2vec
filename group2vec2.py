@@ -103,7 +103,7 @@ def motif_sampler(group):
     gidx = group['gidx']
     seq = []
     while len(seq) < args.walk_length_trans:
-        #size = args.motif_size
+        size = args.motif_size
         #nodes = np.random.permutation(range(len(am)))[:size]
         nodes = range(len(am))
         nodes = get_next_motif_nodes(am, list(nodes))
